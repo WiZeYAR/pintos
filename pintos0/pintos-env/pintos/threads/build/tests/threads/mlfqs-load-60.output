@@ -105,7 +105,7 @@ Executing 'mlfqs-load-60':
 (mlfqs-load-60) end
 Execution of 'mlfqs-load-60' complete.
 Timer: 18837 ticks
-Thread: 12195 idle ticks, 6644 kernel ticks, 0 user ticks
+Thread: 12187 idle ticks, 6652 kernel ticks, 0 user ticks
 Console: 5298 characters output
 Keyboard: 0 keys pressed
 Powering off..========================================================================

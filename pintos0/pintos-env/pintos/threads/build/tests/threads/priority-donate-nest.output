@@ -14,15 +14,19 @@ Executing 'priority-donate-nest':
 (priority-donate-nest) Low thread should have priority 33.  Actual priority: 31.
 (priority-donate-nest) Medium thread should have priority 33.  Actual priority: 32.
 (priority-donate-nest) Medium thread got the lock.
+(priority-donate-nest) High thread got the lock.
+(priority-donate-nest) High thread finished.
+(priority-donate-nest) High thread should have just finished.
+(priority-donate-nest) Middle thread finished.
 (priority-donate-nest) Medium thread should just have finished.
 (priority-donate-nest) Low thread should have priority 31.  Actual priority: 31.
 (priority-donate-nest) end
 Execution of 'priority-donate-nest' complete.
-Timer: 83 ticks
-Thread: 0 idle ticks, 86 kernel ticks, 0 user ticks
-Console: 855 characters output
+Timer: 106 ticks
+Thread: 0 idle ticks, 108 kernel ticks, 0 user ticks
+Console: 1060 characters output
 Keyboard: 0 keys pressed
-Powering off...========================================================================
+Powering off..========================================================================
                         Bochs x86 Emulator 2.6
             Built from SVN snapshot on September 2nd, 2012
                   Compiled on Feb 17 2015 at 16:28:11
