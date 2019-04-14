@@ -376,7 +376,7 @@ thread_get_priority (void)
 /* TODO : Scheduler Assignment */
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (void) 
+thread_set_nice (int nice) 
 {}
 
 /* Returns the current thread's nice value. */
