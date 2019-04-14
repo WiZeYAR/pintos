@@ -17,6 +17,7 @@
 #include "userprog/process.h"
 #endif
 
+
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
@@ -45,6 +46,9 @@ static struct thread *initial_thread;
 
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
+
+/* Used in advanced scheduling */
+int load_avg;
 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
@@ -98,8 +102,8 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
   list_init(&blocked_queue);
-
-  // load_avg = DEFAULT_LOAD_AVG;
+  //Used for advScheduler 
+  load_avg = DEFAULT_LOAD_AVG;
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -358,6 +362,7 @@ thread_foreach (thread_action_func *func, void *aux)
 // same when creatin new threads 
 void
 thread_set_priority (int new_priority){
+  //How to check which priority is used ??
   thread_current ()->priority = new_priority;
   struct list_elem *e = list_max(&ready_list, priority_comparator, NULL);
   struct thread *t = list_entry(e, struct thread, elem);
@@ -376,28 +381,34 @@ thread_get_priority (void)
 /* TODO : Scheduler Assignment */
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (int nice) 
-{}
+thread_set_nice (int nice) {
+  thread_current()->nice = nice;
+  //when nice value changes priority must be computed 
+  int old_priority = thread_current()->priority;
+  compute_priority(thread_current());
+  //if new priority smaller than old priority scheduler must be
+  //invoked to check thread in ready queue with max priority 
+  if (thread_current()->priority < old_priority){
+    thread_yield();
+  }
+}
 
 /* Returns the current thread's nice value. */
 int
-thread_get_nice (void) 
-{
-  return 0;
+thread_get_nice (void){
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
-thread_get_load_avg (void) 
-{
-  return 0;
+thread_get_load_avg (void){
+  return FPR_TO_INT(FPR_MUL_INT(load_avg, 100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
-thread_get_recent_cpu (void) 
-{
-  return 0;
+thread_get_recent_cpu (void){
+  return FPR_TO_INT(FPR_MUL_INT(thread_current()->recent_cpu, 100));
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -652,8 +663,6 @@ void awake_threads(void)
 }
 
 /* Assignment 02 */
-
-/* Simple scheduler */
 /* Used in list_MAX */
 bool priority_comparator(const struct list_elem *a,
                        const struct list_elem *b,
@@ -661,4 +670,74 @@ bool priority_comparator(const struct list_elem *a,
   struct thread *ta = list_entry(a, struct thread, elem);
   struct thread *tb = list_entry(b, struct thread, elem);
   return ta->priority < tb->priority;
+}
+
+void compute_priority(struct thread * t){
+  //thread passes is doing nothing 
+  if (t == idle_thread){
+    return;
+  } else {
+    // PRI-MAX
+    int fpr_pri_max = INT_TO_FPR(PRI_MAX);
+    // (recent_cpu / 4)
+    int recent_cpu_div = FPR_DIV_INT(t->recent_cpu, 4);
+    // (nice * 2)
+    int nice_mul = t->nice * 2;
+    // PRI-MAX - (recent_cpu / 4)
+    int first_sub = FPR_SUB_FPR(fpr_pri_max, recent_cpu_div);
+    // PRI-MAX - (recent_cpu / 4) - (nice * 2)
+    int second_sub = FPR_SUB_INT(first_sub, nice_mul);
+    int new_priority = FPR_TO_INT(second_sub);
+    //Check if new priority is not over/under priority bounds
+    if (new_priority < PRI_MIN){
+      t->priority = PRI_MIN;
+    } else if (new_priority > PRI_MAX){
+      t->priority = PRI_MAX;
+    } else {
+      t->priority = new_priority;
+    }
+  }
+}
+
+void compute_recent_cpu(struct thread * t){
+  //thread passes is doing nothing 
+  if (t == idle_thread){
+    return;
+  } else {
+    // (load_avg * 2)
+    int load_avg_mul = FPR_MUL_INT(load_avg, 2);
+    // (load_avg * 2 + 1)
+    int load_avg_mul_plus = FPR_ADD_INT(load_avg_mul, 1);
+    // (load_avg * 2)/(load_avg * 2 + 1)
+    int load_avg_div = FPR_DIV_FPR(load_avg_mul, load_avg_mul_plus);
+    // (load_avg * 2)/(load_avg * 2 + 1) * recent_cpu
+    int ldavg_mul_rtcpu = FPR_MUL_FPR(load_avg_div, t->recent_cpu);
+    // (load_avg * 2)/(load_avg * 2 + 1) * recent_cpu + nice
+    int new_recent_cpu = FPR_ADD_INT(ldavg_mul_rtcpu, t->nice);
+  }
+}
+
+void increment_recent_cpu(struct thread * t){
+  if (t == idle_thread){
+    return;
+  } else {
+    //Increment recent_cpu by one 
+    thread_current()->recent_cpu = FPR_ADD_INT(thread_current()->recent_cpu, 1);
+  }
+}
+
+void compute_load_avg(void){
+  int ready_or_running_threads;
+  int ready_threads = list_size(&ready_list);
+  if (thread_current() != idle_thread){
+    ready_or_running_threads = ready_threads + 1;
+  }
+  // (59/60) * load_avg == load_avg * (59/60)
+  int ldavg_mul = FPR_MUL_FPR(load_avg, (59/60));
+  // (1/60) * ready_or_running_threads == ready_or_running_threads / 60
+  int rort_div_six = ready_or_running_threads / 60;
+  // (59/60) * load_avg + 1/60) * ready_or_running_threads
+  int new_load_avg = FPR_ADD_INT(ldavg_mul, rort_div_six);
+  // If load_avg < 0 an error has occured 
+  ASSERT (load_avg >= 0)
 }

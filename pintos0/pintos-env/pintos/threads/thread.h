@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/fpr_arith.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -23,6 +24,15 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+
+/* Thread nice values. */
+#define NICE_MIN -20
+#define NICE_DEFAULT 0
+#define NICE_MAX 20
+
+/* Default values for advanced scheduler */
+#define RECENT_CPU_DEFAULT 0
+#define DEFAULT_LOAD_AVG 0
 
 /* A kernel thread or user process.
 
@@ -92,6 +102,9 @@ struct thread
     int64_t ticks;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
+    /* Used for advaced scheduling */
+    int nice;
+    int recent_cpu;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
