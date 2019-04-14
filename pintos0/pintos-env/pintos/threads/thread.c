@@ -104,7 +104,7 @@ thread_init (void)
   list_init(&blocked_queue);
   //Used for advScheduler 
   load_avg = DEFAULT_LOAD_AVG;
-
+  
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   //priority is set to default 
@@ -497,6 +497,10 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
+
+  /* Used for advscheduling */
+  t->nice = NICE_DEFAULT;
+  t->recent_cpu = RECENT_CPU_DEFAULT;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
