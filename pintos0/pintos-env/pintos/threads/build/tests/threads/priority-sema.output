@@ -22,11 +22,12 @@ Executing 'priority-sema':
 (priority-sema) Back in main thread.
 (priority-sema) end
 Execution of 'priority-sema' complete.
-Timer: 93 ticks
-Thread: 0 idle ticks, 95 kernel ticks, 0 user ticks
+Timer: 94 ticks
+Thread: 0 idle ticks, 96 kernel ticks, 0 user ticks
 Console: 748 characters output
 Keyboard: 0 keys pressed
-Powering off...========================================================================
+Powering off...
+========================================================================
                         Bochs x86 Emulator 2.6
             Built from SVN snapshot on September 2nd, 2012
                   Compiled on Feb 17 2015 at 16:28:11

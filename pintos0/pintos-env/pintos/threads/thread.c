@@ -48,7 +48,7 @@ static struct thread *initial_thread;
 static struct lock tid_lock;
 
 /* Used in advanced scheduling */
-int load_avg;
+FPReal load_avg = DEFAULT_LOAD_AVG;
 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
@@ -80,6 +80,7 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -102,12 +103,9 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
   list_init(&blocked_queue);
-  //Used for advScheduler 
-  load_avg = DEFAULT_LOAD_AVG;
   
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
-  //priority is set to default 
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
@@ -146,6 +144,29 @@ thread_tick (void)
 #endif
   else
     kernel_ticks++;
+
+    /* Adv scheduler */
+    if (thread_mlfqs){
+      if (t != idle_thread){
+        //increment by one the recent_cpu
+        FPR_INC(&t->recent_cpu);
+      }
+      // timer_ticks % 4
+      if (timer_ticks() % TIME_SLICE == 0){
+        enum intr_level old_level = intr_disable();
+        //compute threads priority for all threads 
+        thread_foreach(compute_priority, NULL);
+        intr_set_level(old_level);
+      }
+      if (timer_ticks() % TIMER_FREQ == 0){
+        enum intr_level old_level = intr_disable();
+        compute_load_avg();
+        //compute recent cpu of all threads
+        thread_foreach(compute_recent_cpu, NULL);
+        intr_set_level(old_level);
+      }
+    }
+    
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
@@ -222,6 +243,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. (ready_list) */
   thread_unblock (t);
 
+  // yield thread with highest priority 
   if (thread_current()->priority < t->priority){
     thread_yield();
   }
@@ -362,6 +384,7 @@ thread_foreach (thread_action_func *func, void *aux)
 // same when creatin new threads 
 void
 thread_set_priority (int new_priority){
+  enum intr_level old_level = intr_disable();
   //How to check which priority is used ??
   thread_current ()->priority = new_priority;
   struct list_elem *e = list_max(&ready_list, priority_comparator, NULL);
@@ -369,6 +392,7 @@ thread_set_priority (int new_priority){
   if (new_priority < t->priority){
     thread_yield();
   }
+  intr_set_level(old_level);
 }
 
 /* Returns the current thread's priority. */
@@ -386,6 +410,7 @@ thread_set_nice (int nice) {
   //when nice value changes priority must be computed 
   int old_priority = thread_current()->priority;
   compute_priority(thread_current());
+  int new_priority = thread_current()->priority;
   //if new priority smaller than old priority scheduler must be
   //invoked to check thread in ready queue with max priority 
   if (thread_current()->priority < old_priority){
@@ -499,8 +524,11 @@ init_thread (struct thread *t, const char *name, int priority)
   list_push_back (&all_list, &t->allelem);
 
   /* Used for advscheduling */
-  t->nice = NICE_DEFAULT;
-  t->recent_cpu = RECENT_CPU_DEFAULT;
+  if (thread_mlfqs) {
+    t->nice = NICE_DEFAULT;
+    t->recent_cpu = RECENT_CPU_DEFAULT;
+    compute_priority(t);
+  }
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -709,18 +737,20 @@ void compute_recent_cpu(struct thread * t){
     return;
   } else {
     // (load_avg * 2)
-    int load_avg_mul = FPR_MUL_INT(load_avg, 2);
+    FPReal load_avg_mul = FPR_MUL_INT(load_avg, 2);
     // (load_avg * 2 + 1)
-    int load_avg_mul_plus = FPR_ADD_INT(load_avg_mul, 1);
+    // could use FPR_INC ?? 
+    FPReal load_avg_mul_plus = FPR_ADD_INT(load_avg_mul, 1);
     // (load_avg * 2)/(load_avg * 2 + 1)
-    int load_avg_div = FPR_DIV_FPR(load_avg_mul, load_avg_mul_plus);
+    FPReal load_avg_div = FPR_DIV_FPR(load_avg_mul, load_avg_mul_plus);
     // (load_avg * 2)/(load_avg * 2 + 1) * recent_cpu
-    int ldavg_mul_rtcpu = FPR_MUL_FPR(load_avg_div, t->recent_cpu);
+    FPReal ldavg_mul_rtcpu = FPR_MUL_FPR(load_avg_div, t->recent_cpu);
     // (load_avg * 2)/(load_avg * 2 + 1) * recent_cpu + nice
-    int new_recent_cpu = FPR_ADD_INT(ldavg_mul_rtcpu, t->nice);
+    t->recent_cpu = FPR_ADD_INT(ldavg_mul_rtcpu, t->nice);
   }
 }
 
+// NOT NEEDED THERE IS FPR_INC 
 void increment_recent_cpu(struct thread * t){
   if (t == idle_thread){
     return;
@@ -731,17 +761,15 @@ void increment_recent_cpu(struct thread * t){
 }
 
 void compute_load_avg(void){
-  int ready_or_running_threads;
-  int ready_threads = list_size(&ready_list);
+  int ready_or_running_threads = list_size(&ready_list);
   if (thread_current() != idle_thread){
-    ready_or_running_threads = ready_threads + 1;
+    ready_or_running_threads += 1;
   }
-  // (59/60) * load_avg == load_avg * (59/60)
-  int ldavg_mul = FPR_MUL_FPR(load_avg, (59/60));
+  FPReal fif_div_six = FPR_DIV_INT(INT_TO_FPR(59), 60);
+  // (59/60) * load_avg
+  FPReal ldavg_mul = FPR_MUL_FPR(fif_div_six, load_avg);
   // (1/60) * ready_or_running_threads == ready_or_running_threads / 60
-  int rort_div_six = ready_or_running_threads / 60;
+  FPReal rort_div_six = FPR_DIV_INT(INT_TO_FPR(ready_or_running_threads),60);
   // (59/60) * load_avg + 1/60) * ready_or_running_threads
-  int new_load_avg = FPR_ADD_INT(ldavg_mul, rort_div_six);
-  // If load_avg < 0 an error has occured 
-  ASSERT (load_avg >= 0)
+  load_avg = FPR_ADD_FPR(ldavg_mul, rort_div_six);
 }
