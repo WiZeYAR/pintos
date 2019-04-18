@@ -21,6 +21,10 @@
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
+/* TODO:
+   Assignment 4: Implementing args passing 
+   1) addr, which argv, data contained, size 
+*/
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -45,11 +49,13 @@ process_execute (const char *file_name)
   return tid;
 }
 
+/* TODO Assignment 4 */
 /* A thread function that loads a user process and starts it
    running. */
 static void
 start_process (void *file_name_)
 {
+  //use strtok_r() to tokenise the file 
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
@@ -76,6 +82,11 @@ start_process (void *file_name_)
   NOT_REACHED ();
 }
 
+/* TODO: Assignment 4 
+   Child keeps track of parent thread
+   use thread_block to block the parent 
+   when child_exit --> thread_unblock()
+*/
 /* Waits for thread TID to die and returns its exit status.  If
    it was terminated by the kernel (i.e. killed due to an
    exception), returns -1.  If TID is invalid or if it was not a
