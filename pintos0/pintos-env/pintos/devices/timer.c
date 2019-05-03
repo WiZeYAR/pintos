@@ -89,9 +89,7 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  
   int64_t start = timer_ticks ();
-
   ASSERT (intr_get_level () == INTR_ON);
   thread_sleep(start + ticks);
 }
@@ -165,14 +163,13 @@ timer_print_stats (void)
 {
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
-
+
 /* Timer interrupt handler. */
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  awake_threads();
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

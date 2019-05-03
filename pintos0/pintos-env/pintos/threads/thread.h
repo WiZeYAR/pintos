@@ -25,14 +25,14 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
-/* Thread nice values. */
-#define NICE_MIN -20
-#define NICE_DEFAULT 0
-#define NICE_MAX 20
+/* Thread nicesses. */
+#define NICE_MIN -20                     /* Lowest niceness. */
+#define NICE_DEFAULT 0                   /* Default niceness. */
+#define NICE_MAX 20                      /* Highest niceness. */
 
-/* Default values for advanced scheduler */
-#define RECENT_CPU_DEFAULT 0
-#define DEFAULT_LOAD_AVG 0
+/* Max filename length for a pintos executable.
+ * Comes from the original Pintos code and I made it into a definition. */
+#define MAX_THREADNAME_LENGTH 16
 
 /* A kernel thread or user process.
 
@@ -94,31 +94,42 @@ struct thread
   {
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
+    tid_t parent_tid;                   /* Identifier of parent */
+    bool parent_waits;
+    int proc_ret_code;                  /* Return code of the process */
     enum thread_status status;          /* Thread state. */
-    char name[16];                      /* Name (for debugging purposes). */
+    char name[MAX_THREADNAME_LENGTH];   /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     struct list_elem allelem;           /* List element for all threads list. */
-    int64_t ticks;
+
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element. */
-    /* Used for advaced scheduling */
-    int priority;                       /* Priority. */
-    int nice;
-    FPReal recent_cpu;
+    struct list_elem elem;              /* List element. Used either for ready_list or sleeping_list. */
+
+
+
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
-    uint32_t *pagedir;                  /* Page directory. */
+    uint32_t * pagedir;                 /* Page directory. */
 #endif
+
+    int64_t wakeup_at_tick;
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    /* Advance scheduling data */
+    int priority;                       /* Priority. */
+    int nice;                           /* Niceness value. */
+    FPReal recent_cpu;                  /* Recent cpu usage of the thread. */
   };
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+struct thread * thread_get_by_tid (int tid);
 
 void thread_init (void);
 void thread_start (void);
@@ -138,6 +149,7 @@ const char *thread_name (void);
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
+void thread_yield_on_higher_priority (void);
 
 /* Performs some operation on thread t, given auxiliary data AUX. */
 typedef void thread_action_func (struct thread *t, void *aux);
@@ -151,14 +163,10 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void thread_sleep(int64_t);
-void awake_threads(void);
+void thread_sleep (int64_t wakeup_at);
 
-bool priority_comparator(const struct list_elem *,
-                         const struct list_elem *,
-                         void * );
-void compute_load_avg(void);
-void compute_recent_cpu(struct thread *);
-void compute_priority(struct thread *);
+bool thread_priority_cmp (const struct list_elem* a, 
+  const struct list_elem* b,
+  void* aux);
 
 #endif /* threads/thread.h */
