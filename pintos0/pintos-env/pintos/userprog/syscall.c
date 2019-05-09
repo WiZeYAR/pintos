@@ -14,6 +14,8 @@ static void syscall_handler (struct intr_frame *);
 typedef void (*handler) (struct intr_frame *);
 static void syscall_exit (struct intr_frame *f);
 static void syscall_write (struct intr_frame *f);
+static void syscall_wait (struct intr_frame *f);
+static void syscall_exec (struct intr_frame *f);
 
 #define SYSCALL_MAX_CODE 19
 static handler call[SYSCALL_MAX_CODE + 1];
@@ -30,12 +32,26 @@ syscall_init (void)
    * lib/user/syscall.c for a short explanation of each system call. */
   call[SYS_EXIT]  = syscall_exit;   // Terminate this process.
   call[SYS_WRITE] = syscall_write;  // Write to a file.
+
+  // Add syscall handler for syscall WAIT 
+  call[SYS_WAIT] = syscall_wait;
+  // Add syscall handler for syscall EXEC
+  call[SYS_EXEC] = syscall_exec;
 }
 
 static void
 syscall_handler (struct intr_frame *f)
 {
+  // syscall_code is the int to which the stack pointer is pointing to 
+  // e.g. SYS_WRITE, SYS_EXIT
   int syscall_code = *((int*)f->esp);
+  // call is an array of "struct handler" 
+  // intr_frame = interrupt frame 
+  // f is a pointer to a intr_frame 
+  // call[syscall_code] returns pointer to function
+  // f is the paramiter of the function 
+  // basically this is a call to the corrisponding syscall handler with 
+  // parameter == to f. 
   call[syscall_code](f);
 }
 
@@ -57,4 +73,23 @@ syscall_write (struct intr_frame *f)
   int    length = *(stack+3);
   putbuf (buffer, length);
   f->eax = length;
+}
+
+// WAIT CALL: 
+/* Handling function */
+static void 
+syscall_wait(struct intr_frame *f){
+  // implement 
+  int *stack = f->esp;
+  int pid = *(stack+1); //pid_t == int 
+  // TODO : think 
+  // should find tid based on pid ?? 
+  f->eax = process_wait(pid);
+}
+
+// EXEC CALL:
+/* Handling function */
+static void 
+syscall_exec(struct intr_frame *f){
+  //implement
 }

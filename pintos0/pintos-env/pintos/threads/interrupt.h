@@ -28,7 +28,7 @@ struct intr_frame
     uint32_t ebx;               /* Saved EBX. */
     uint32_t edx;               /* Saved EDX. */
     uint32_t ecx;               /* Saved ECX. */
-    uint32_t eax;               /* Saved EAX. */
+    uint32_t eax;               /* Saved EAX. */  //we need to save the return value of syscall here 
     uint16_t gs, :16;           /* Saved GS segment register. */
     uint16_t fs, :16;           /* Saved FS segment register. */
     uint16_t es, :16;           /* Saved ES segment register. */

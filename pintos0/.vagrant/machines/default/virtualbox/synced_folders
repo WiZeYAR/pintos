@@ -1,1 +1,1 @@
-{"virtualbox":{"/pintos-env":{"guestpath":"/pintos-env","hostpath":"/Users/vale/Github/Pintos/pintos/pintos0/pintos-env","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/vale/Github/Pintos/pintos/pintos0","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/pintos-env":{"guestpath":"/pintos-env","hostpath":"/Users/vale/Github/pintos/pintos0/pintos-env","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/vale/Github/pintos/pintos0","disabled":false,"__vagrantfile":true}}}

@@ -30,6 +30,10 @@
 
 /* Invokes syscall NUMBER, passing arguments ARG0 and ARG1, and
    returns the return value as an `int'. */
+   // int --> is interrupt 
+   // every interrupt has a vector in this case the number
+   // 0x30 is the routine to handle the interrupt which 
+   // correspond to syscall_handler function.
 #define syscall2(NUMBER, ARG0, ARG1)                            \
         ({                                                      \
           int retval;                                           \
@@ -120,6 +124,7 @@ read (int fd, void *buffer, unsigned size)
 int
 write (int fd, const void *buffer, unsigned size)
 {
+  //fd = file descriptor 
   return syscall3 (SYS_WRITE, fd, buffer, size);
 }
 
