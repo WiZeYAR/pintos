@@ -30,18 +30,25 @@ syscall_handler (struct intr_frame *f UNUSED)
       // WE WERE NOT REALLY SURE ABOUT THE ARGUMENT TYPES (OR) SIZES
       // IT WOULD BE NICE, IF THIS IS TOLD IN THE TASK EXPLICITLY
       // NEXT TIME, SO WE DO NOT HAVE TO GUESS
+      // Use the function putbuf() to print to stdout
+      // syscall3(SYS_WRITE, fd, buffer, size)
+      //         |    0    | 1 |    2  |   3 |
+      // we are not using fd because we write on stdio
       putbuf(
           (char*)    ((f->eax) + 2 * BYTES_PER_STACK_ARG), // A POINTER TO THE BUFFER WITH TEXT TO WRITE
+          // This take the size number 
           * (size_t*) ((f->eax) + 3 * BYTES_PER_STACK_ARG)   // A POINTER TO THE SIZE OF THE BUFFER
       );
       * return_ptr = 0; // ASSUMING THAT THE PUTBUFF ALWAYS SUCCEEDS
       break;
+
     case SYS_EXIT:
       * return_ptr = * (uint16_t *) (f->esp + 1 * BYTES_PER_STACK_ARG);
       thread_current()->proc_ret_code = *return_ptr;
       thread_current()->parent_waits = false;
       break;
   }
+
   thread_exit();
   
   
