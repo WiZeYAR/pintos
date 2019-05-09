@@ -32,4 +32,8 @@ size_t strnlen (const char *, size_t);
 #define strncat dont_use_strncat_use_strlcat
 #define strtok dont_use_strtok_use_strtok_r
 
+/* This method makes the code more readable. */
+void
+str_copy_first_word(char * dst, const char * src, size_t destbuflen);
+
 #endif /* lib/string.h */

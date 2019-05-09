@@ -1,6 +1,6 @@
 00000000000i[     ] Bochs x86 Emulator 2.6
 00000000000i[     ]   Built from SVN snapshot on September 2nd, 2012
-00000000000i[     ] Compiled on Feb 17 2015 at 16:28:11
+00000000000i[     ] Compiled on Mar 21 2014 at 15:17:32
 00000000000i[     ] System configuration
 00000000000i[     ]   processors: 1 (cores=1, HT threads=1)
 00000000000i[     ]   A20 line support: yes
@@ -30,13 +30,13 @@
 00000000000i[     ]   SB16 support: no
 00000000000i[     ]   USB support: no
 00000000000i[     ]   VGA extension support: vbe 
-00000000000i[MEM0 ] allocated memory at 0x7fd793f58010. after alignment, vector=0x7fd793f59000
+00000000000i[MEM0 ] allocated memory at 0x1101d8000. after alignment, vector=0x1101d8000
 00000000000i[MEM0 ] 4.00MB
 00000000000i[MEM0 ] mem block size = 0x00100000, blocks=4
-00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/pintos-env/share/bochs/BIOS-bochs-latest')
+00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/Users/eduardo/env_pintos/share/bochs/BIOS-bochs-latest')
 00000000000i[     ] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS ] Using specified time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Thu Jan  1 00:00:00 1970 (time0=0)
+00000000000i[CMOS ] Setting initial clock to: Thu Jan  1 01:00:00 1970 (time0=0)
 00000000000i[     ] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[     ] init_dev of 'pic' plugin device by virtual method
@@ -48,14 +48,14 @@
 00000000000i[VGA  ] interval=200000
 00000000000i[MEM0 ] Register memory access handlers: 0x00000000e0000000 - 0x00000000e0ffffff
 00000000000i[BXVGA] VBE Bochs Display Extension Enabled
-00000000000i[MEM0 ] rom at 0xc0000/41472 ('/pintos-env/share/bochs/VGABIOS-lgpl-latest')
+00000000000i[MEM0 ] rom at 0xc0000/41472 ('/Users/eduardo/env_pintos/share/bochs/VGABIOS-lgpl-latest')
 00000000000i[     ] init_dev of 'ioapic' plugin device by virtual method
 00000000000i[IOAP ] initializing I/O APIC
 00000000000i[MEM0 ] Register memory access handlers: 0x00000000fec00000 - 0x00000000fec00fff
 00000000000i[     ] init_dev of 'keyboard' plugin device by virtual method
 00000000000i[KBD  ] will paste characters every 1000 keyboard ticks
 00000000000i[     ] init_dev of 'harddrv' plugin device by virtual method
-00000000000i[HD   ] HD on ata0-0: '/tmp/YzDOMUHCM1.dsk', 'flat' mode
+00000000000i[HD   ] HD on ata0-0: '/var/folders/n_/xymbwd6d4pv9vhnd055y_3gm0000gn/T/Qm66eATsgP.dsk', 'flat' mode
 00000000000i[IMG  ] hd_size: 516096
 00000000000i[HD   ] ata0-0: using specified geometry: CHS=1/16/63
 00000000000i[HD   ] Using boot sequence disk, none, none
@@ -110,8 +110,6 @@
 00000000000i[     ] reset of 'unmapped' plugin device by virtual method
 00000000000i[     ] reset of 'biosdev' plugin device by virtual method
 00000000000i[     ] reset of 'speaker' plugin device by virtual method
-00000000000e[SPEAK] Failed to open /dev/console: Permission denied
-00000000000e[SPEAK] Deactivating beep on console
 00000000000i[     ] reset of 'extfpuirq' plugin device by virtual method
 00000000000i[     ] reset of 'parallel' plugin device by virtual method
 00000000000i[     ] reset of 'serial' plugin device by virtual method
@@ -132,56 +130,30 @@
 00000833946i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
 00004712316i[BIOS ] IDE time out
 00007773617i[BIOS ] Booting from 0000:7c00
-00008175098i[MEM0 ] allocate_block: block=0x1 used 0x2 of 0x4
-00008215999i[MEM0 ] allocate_block: block=0x2 used 0x3 of 0x4
-00103865025i[NGUI ] ips = 103.865M
-00209516058i[NGUI ] ips = 105.651M
-00314072082i[NGUI ] ips = 104.556M
-00419676794i[NGUI ] ips = 105.605M
-00525700425i[NGUI ] ips = 106.024M
-00630796359i[NGUI ] ips = 105.096M
-00736397239i[NGUI ] ips = 105.601M
-00842145076i[NGUI ] ips = 105.748M
-00946442293i[NGUI ] ips = 104.297M
-01051697897i[NGUI ] ips = 105.256M
-01157232426i[NGUI ] ips = 105.535M
-01262970019i[NGUI ] ips = 105.738M
-01368568032i[NGUI ] ips = 105.598M
-01473994544i[NGUI ] ips = 105.427M
-01578964512i[NGUI ] ips = 104.970M
-01684249103i[NGUI ] ips = 105.285M
-01789571919i[NGUI ] ips = 105.323M
-01895694835i[NGUI ] ips = 106.123M
-02000733629i[NGUI ] ips = 105.039M
-02104574821i[NGUI ] ips = 103.841M
-02210255928i[NGUI ] ips = 105.681M
-02314971408i[NGUI ] ips = 104.715M
-02419929570i[NGUI ] ips = 104.958M
-02525026493i[NGUI ] ips = 105.097M
-02630237117i[NGUI ] ips = 105.211M
-02730565315i[NGUI ] ips = 100.328M
-02835956603i[NGUI ] ips = 105.391M
-02941708758i[NGUI ] ips = 105.752M
-02955934853p[     ] >>PANIC<< SIGNAL 2 caught
-02955934853i[CPU0 ] CPU is in protected mode (active)
-02955934853i[CPU0 ] CS.mode = 32 bit
-02955934853i[CPU0 ] SS.mode = 32 bit
-02955934853i[CPU0 ] EFER   = 0x00000000
-02955934853i[CPU0 ] | EAX=00000000  EBX=c0030898  ECX=0000000b  EDX=000003f8
-02955934853i[CPU0 ] | ESP=c000eee0  EBP=c000eff8  ESI=00000077  EDI=c002d9bd
-02955934853i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf af pf cf
-02955934853i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-02955934853i[CPU0 ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-02955934853i[CPU0 ] | EIP=c0028369 (c0028367)
-02955934853i[CPU0 ] | CR0=0xe0010015 CR2=0x00000000
-02955934853i[CPU0 ] | CR3=0x00101000 CR4=0x00000000
-02955934853i[CPU0 ] 0xc0028367>> jmp .-2 (0xc0028367) : EBFE
-02955934853i[CMOS ] Last time is 2955 (Thu Jan  1 00:49:15 1970)
-02955934853i[NGUI ] bx_nogui_gui_c::exit() not implemented yet.
-02955934853i[     ] restoring default signal behavior
-02955934853i[CTRL ] quit_sim called with exit code 1
+00008146257i[MEM0 ] allocate_block: block=0x1 used 0x2 of 0x4
+00008187546i[MEM0 ] allocate_block: block=0x2 used 0x3 of 0x4
+00118130268i[NGUI ] ips = 118.130M
+00281669516i[NGUI ] ips = 163.539M
+00415025000p[     ] >>PANIC<< SIGNAL 2 caught
+00415025000i[CPU0 ] CPU is in protected mode (halted)
+00415025000i[CPU0 ] CS.mode = 32 bit
+00415025000i[CPU0 ] SS.mode = 32 bit
+00415025000i[CPU0 ] EFER   = 0x00000000
+00415025000i[CPU0 ] | EAX=00000000  EBX=c0021156  ECX=c0103000  EDX=00000018
+00415025000i[CPU0 ] | ESP=c0103fa8  EBP=00000000  ESI=00000000  EDI=00000000
+00415025000i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df IF tf SF zf AF pf cf
+00415025000i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
+00415025000i[CPU0 ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00415025000i[CPU0 ] | EIP=c002117b (c002117b)
+00415025000i[CPU0 ] | CR0=0xe0010015 CR2=0x00000000
+00415025000i[CPU0 ] | CR3=0x00101000 CR4=0x00000000
+00415025000i[CPU0 ] 0xc002117b>> jmp .-14 (0xc002116f) : EBF2
+00415025000i[CMOS ] Last time is 415 (Thu Jan  1 01:06:55 1970)
+00415025000i[NGUI ] bx_nogui_gui_c::exit() not implemented yet.
+00415025000i[     ] restoring default signal behavior
+00415025000i[CTRL ] quit_sim called with exit code 1
