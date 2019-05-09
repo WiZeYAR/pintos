@@ -171,9 +171,9 @@ block_print_stats (void)
       struct block *block = block_by_role[i];
       if (block != NULL)
         {
-          printf ("%s (%s): %llu reads, %llu writes\n",
-                  block->name, block_type_name (block->type),
-                  block->read_cnt, block->write_cnt);
+          // printf ("%s (%s): %llu reads, %llu writes\n",
+          //         block->name, block_type_name (block->type),
+          //         block->read_cnt, block->write_cnt);
         }
     }
 }
