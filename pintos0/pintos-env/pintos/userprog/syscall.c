@@ -5,9 +5,11 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "threads/synch.h"
 #include "threads/palloc.h"
 #include "userprog/process.h"
 #include "devices/shutdown.h"
+#include "lib/user/syscall.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -79,17 +81,26 @@ syscall_write (struct intr_frame *f)
 /* Handling function */
 static void 
 syscall_wait(struct intr_frame *f){
-  // implement 
   int *stack = f->esp;
-  int pid = *(stack+1); //pid_t == int 
-  // TODO : think 
-  // should find tid based on pid ?? 
+  pid_t pid = *(stack+1);
   f->eax = process_wait(pid);
 }
 
 // EXEC CALL:
 /* Handling function */
 static void 
-syscall_exec(struct intr_frame *f){
-  //implement
+syscall_exec(struct intr_frame *f) {
+  int *stack = f->esp;
+  char * command = *(stack+1);
+  /* Check if address is a user virtual address */
+  if (!is_user_vaddr(command) || !pagedir_get_page(thread_current()->pagedir, command)){
+    f->eax = -1;
+    return;
+  }
+  tid_t res = process_execute(command);
+  // if (!thread_current()->child_load_success){
+  //   f->eax = -1; 
+  //   return;
+  // }
+  f->eax = res;
 }

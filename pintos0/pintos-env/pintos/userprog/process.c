@@ -94,7 +94,6 @@ process_execute (const char * command)
 {
   char * cmd_copy;
   tid_t tid;
-
   /* Make a copy of COMMAND.
      Otherwise there's a race between the caller and load(). */
   cmd_copy = palloc_get_page (0);
@@ -106,6 +105,10 @@ process_execute (const char * command)
   tid = thread_create (command, PRI_DEFAULT, start_process, cmd_copy);
   if (tid == TID_ERROR)
     palloc_free_page (cmd_copy);
+  // we block here because we sucessfully created the child process 
+  enum intr_level old_status = intr_disable();
+  thread_block();
+  // intr_set_level(old_status);
   return tid;
 }
 
@@ -128,6 +131,9 @@ start_process (void * command)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name, &if_.eip, &if_.esp);
+  // thread_current()->parent->child_load_success = success;         /* Needed to inform parent thread if loading of executable of child thread has failed or not*/
+  // we unblock here because we finish to load the exacutable 
+  thread_unblock(thread_current()->parent);
 
   /* If load failed, quit. */
   if (!success)
@@ -140,7 +146,7 @@ start_process (void * command)
     parse_args_onto_stack(&if_.esp, command);
     palloc_free_page (command);
   }
-
+  
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
