@@ -108,7 +108,7 @@ process_execute (const char * command)
   // we block here because we sucessfully created the child process 
   enum intr_level old_status = intr_disable();
   thread_block();
-  // intr_set_level(old_status);
+  intr_set_level(old_status);
   return tid;
 }
 
@@ -131,7 +131,7 @@ start_process (void * command)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name, &if_.eip, &if_.esp);
-  // thread_current()->parent->child_load_success = success;         /* Needed to inform parent thread if loading of executable of child thread has failed or not*/
+  thread_current()->parent->child_load_success = success;         /* Needed to inform parent thread if loading of executable of child thread has failed or not*/
   // we unblock here because we finish to load the exacutable 
   thread_unblock(thread_current()->parent);
 
@@ -146,7 +146,7 @@ start_process (void * command)
     parse_args_onto_stack(&if_.esp, command);
     palloc_free_page (command);
   }
-  
+
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its

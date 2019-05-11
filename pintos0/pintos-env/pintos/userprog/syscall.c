@@ -98,9 +98,9 @@ syscall_exec(struct intr_frame *f) {
     return;
   }
   tid_t res = process_execute(command);
-  // if (!thread_current()->child_load_success){
-  //   f->eax = -1; 
-  //   return;
-  // }
+  if (!thread_current()->child_load_success){
+    f->eax = -1; 
+    return;
+  }
   f->eax = res;
 }

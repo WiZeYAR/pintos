@@ -108,6 +108,7 @@ struct thread
     int exit_status;                    /* Status passed to exit() */
     struct thread* parent;              /* Parent thread */
     bool parent_waiting;                /* True if parent is waiting */
+    bool child_load_success;            /* True if child process loaded executable with success */
 #endif
 
     int64_t wakeup_at_tick;

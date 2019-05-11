@@ -320,7 +320,6 @@ thread_create (const char *name, int priority,
   /* A new thread has just been created and is ready. */
   /* Maybe its priority is higher than the current one. */
   thread_yield_for_higher_priority();
-
   return tid;
 }
 
