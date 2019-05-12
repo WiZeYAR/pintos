@@ -174,15 +174,16 @@ process_wait (tid_t child_tid)
   enum intr_level old_level = intr_disable ();
 
   struct thread * child = thread_get_by_tid(child_tid);
+  int * child_exit_status = &child->exit_status;
   if (child == NULL || child->parent != thread_current())
     return -1;
 
+  int exit_status_placeholder;
   child->parent_waiting = true;
+  child->exit_status_placeholder = &exit_status_placeholder;
   thread_block ();
-
   intr_set_level (old_level);
-
-  return child->exit_status;
+  return exit_status_placeholder;
 #else
   /* In case USERPROG was not defined (you can ignore/not implement this part). */
   return -1;
@@ -215,6 +216,7 @@ process_exit (void)
     }
 
   /* Print exit status, required for the tests. */
+  *cur->exit_status_placeholder = cur->exit_status;
   printf("%s: exit(%d)\n", cur->name, cur->exit_status);
 
   /* Unblock the parent, if the parent is waiting for this thread. */
