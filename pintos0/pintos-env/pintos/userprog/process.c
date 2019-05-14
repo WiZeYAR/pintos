@@ -105,10 +105,18 @@ process_execute (const char * command)
   tid = thread_create (command, PRI_DEFAULT, start_process, cmd_copy);
   if (tid == TID_ERROR)
     palloc_free_page (cmd_copy);
-  // we block here because we sucessfully created the child process 
-  enum intr_level old_status = intr_disable();
-  thread_block();
-  intr_set_level(old_status);
+  else {
+    // we block here because we sucessfully created the child process 
+    enum intr_level old_status = intr_disable();
+    thread_block();
+    intr_set_level(old_status);
+    
+    if (thread_current()->child_load_success == false) {
+    // why calls process wait on failed child tid ?? 
+      process_wait(tid);
+      tid = TID_ERROR;
+    }
+  }
   return tid;
 }
 
