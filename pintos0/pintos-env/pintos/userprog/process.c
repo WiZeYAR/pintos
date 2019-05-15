@@ -112,7 +112,6 @@ process_execute (const char * command)
     intr_set_level(old_status);
     
     if (thread_current()->child_load_success == false) {
-    // why calls process wait on failed child tid ?? 
       process_wait(tid);
       tid = TID_ERROR;
     }
