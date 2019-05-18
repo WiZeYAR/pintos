@@ -7,17 +7,31 @@
 #include "threads/vaddr.h"
 #include "threads/synch.h"
 #include "threads/palloc.h"
+// #include "threads/thread.h"
 #include "userprog/process.h"
 #include "devices/shutdown.h"
 #include "lib/user/syscall.h"
 
-static void syscall_handler (struct intr_frame *);
 
+static unsigned fd = 0;
+static void syscall_handler (struct intr_frame *);
 typedef void (*handler) (struct intr_frame *);
+//Assignment 4
 static void syscall_exit (struct intr_frame *f);
 static void syscall_write (struct intr_frame *f);
+//Assignment 5
 static void syscall_wait (struct intr_frame *f);
 static void syscall_exec (struct intr_frame *f);
+// Assignment 6
+static void syscall_create (struct intr_frame *f);
+static void syscall_remove (struct intr_frame *f);
+static void syscall_open (struct intr_frame *f);
+static void syscall_close (struct intr_frame *f);
+static void syscall_filesize (struct intr_frame *f);
+static void syscall_read (struct intr_frame *f);
+static void syscall_seek (struct intr_frame *f);
+static void syscall_tell (struct intr_frame *f);
+static void syscall_halt (struct intr_frame *f);
 
 #define SYSCALL_MAX_CODE 19
 static handler call[SYSCALL_MAX_CODE + 1];
@@ -35,10 +49,22 @@ syscall_init (void)
   call[SYS_EXIT]  = syscall_exit;   // Terminate this process.
   call[SYS_WRITE] = syscall_write;  // Write to a file.
 
+  //Assignment 5
   // Add syscall handler for syscall WAIT 
   call[SYS_WAIT] = syscall_wait;
   // Add syscall handler for syscall EXEC
   call[SYS_EXEC] = syscall_exec;
+
+  //Assignment 6
+  call[SYS_CREATE] = syscall_create;
+  call[SYS_REMOVE] = syscall_remove;
+  call[SYS_OPEN] = syscall_open;
+  call[SYS_CLOSE] = syscall_close;
+  call[SYS_FILESIZE] = syscall_filesize;
+  call[SYS_READ] = syscall_read;
+  call[SYS_SEEK] = syscall_seek;
+  call[SYS_TELL] = syscall_tell;
+  call[SYS_HALT] = syscall_halt;
 }
 
 static void
@@ -103,4 +129,46 @@ syscall_exec(struct intr_frame *f) {
     return;
   }
   f->eax = res;
+}
+
+// Assignment 6
+static void syscall_create(struct intr_frame *f){
+  int *stack = f->esp;
+  char * filename = *(stack+1);
+  int size = *(stack+2);
+  f->eax = filesys_create(filename, size);
+}
+
+static void syscall_remove (struct intr_frame *f){
+  int *stack = f->esp;
+  char * filename = *(stack+1);
+  f->eax = filesys_remove(filename);
+}
+
+static void syscall_open (struct intr_frame *f){
+  // int *stack = f->esp;
+  // char * filename = *(stack+1);
+  // struct fd_item * i = malloc(sizeof(struct fd_item));
+  // i->id = fd++;
+  //   i->f = filesys_open(filename);
+  //   hash_insert(FD_HASHMAP, &i->elem);
+}
+
+static void syscall_close (struct intr_frame *f){
+
+}
+static void syscall_filesize (struct intr_frame *f){
+
+}
+static void syscall_read (struct intr_frame *f){
+
+}
+static void syscall_seek (struct intr_frame *f){
+
+}
+static void syscall_tell (struct intr_frame *f){
+
+}
+static void syscall_halt (struct intr_frame *f){
+  shutdown_power_off();
 }

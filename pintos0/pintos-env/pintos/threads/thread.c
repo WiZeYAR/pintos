@@ -21,6 +21,12 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
+/* Assignment 6 */
+//unsigned fd_item_hash(const struct hash_elem * e, void * aux);
+hash_hash_func fd_item_hash;
+//bool fd_item_compare(const struct hash_elem * a, const struct hash_elem * b, void * aux);
+hash_less_func fd_item_compare;
+
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -132,6 +138,11 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  /* Assingment 6: FD_HASHMAP initialization */
+  // ASSERT(FD_HASHMAP = malloc(sizeof(struct hash)));
+  // ASSERT(hash_init(FD_HASHMAP, fd_item_hash, fd_item_compare, NULL));
+
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -820,3 +831,19 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+
+/* Assignment 6 */
+/* Implemention of hashtable item and functions */
+// unsigned fd_item_hash(const struct hash_elem * e, void * aux){
+//   struct fd_item * i = hash_entry(e, struct fd_item, elem);
+//   return hash_int(i->id);
+// }
+
+// bool fd_item_compare(const struct hash_elem * a, const struct hash_elem * b, void * aux){
+//   struct fd_item * fd_item_a = hash_entry(a, struct fd_item, elem);
+//   struct fd_item * fd_item_b = hash_entry(b, struct fd_item, elem);
+//   return fd_item_a->id < fd_item_b->id;
+// }
+
+

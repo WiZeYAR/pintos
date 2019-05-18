@@ -5,6 +5,20 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/fpr_arith.h"
+#include "lib/kernel/hash.h"
+
+
+/** A global hash map of file descriptors (and maybe files) for all threads */
+struct hash * FD_HASHMAP;
+
+/* Assignment 6 */
+/* Declaration of hashtable item and functions */
+
+struct fd_item{
+  int id;                   // fd of file 
+  struct file * f;          // the struct associated with this file descriptor
+  struct hash_elem elem;   
+};
 
 /* States in a thread's life cycle. */
 enum thread_status
