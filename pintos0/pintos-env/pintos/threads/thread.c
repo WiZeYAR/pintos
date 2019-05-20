@@ -684,6 +684,13 @@ init_thread (struct thread *t, const char *name, int priority)
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
 
+  // initialize the hashmap
+  /*
+  ASSERT(FD_HASHMAP = malloc(sizeof(struct hash)));
+  ASSERT(hash_init(FD_HASHMAP, fd_item_hash, fd_item_compare, NULL));
+  */
+  //t->fd_hashmap = malloc(sizeof(struct hash))
+
 #ifdef USERPROG
   /* For the userprog tests, the thread name must be just the
    * filename that it executes, excluding any arguments passed
@@ -710,7 +717,13 @@ init_thread (struct thread *t, const char *name, int priority)
 
   t->magic = THREAD_MAGIC;
 
+  /* If we want to use alloc_frame we have to have t->magic set
+   * But I'm still not sure if it's the correct thing to do */
+  t->fd_hashmap = alloc_frame(t, sizeof(struct hash));
+
   list_push_back (&all_list, &t->allelem);
+  /* This cannot be here as hash_init calls malloc */
+  //hash_init(t->fd_hashmap, fd_item_hash, fd_item_compare, NULL);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -835,15 +848,15 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 /* Assignment 6 */
 /* Implemention of hashtable item and functions */
-// unsigned fd_item_hash(const struct hash_elem * e, void * aux){
-//   struct fd_item * i = hash_entry(e, struct fd_item, elem);
-//   return hash_int(i->id);
-// }
+unsigned fd_item_hash(const struct hash_elem * e, void * aux){
+  struct fd_item * i = hash_entry(e, struct fd_item, elem);
+  return hash_int(i->id);
+}
 
-// bool fd_item_compare(const struct hash_elem * a, const struct hash_elem * b, void * aux){
-//   struct fd_item * fd_item_a = hash_entry(a, struct fd_item, elem);
-//   struct fd_item * fd_item_b = hash_entry(b, struct fd_item, elem);
-//   return fd_item_a->id < fd_item_b->id;
-// }
+bool fd_item_compare(const struct hash_elem * a, const struct hash_elem * b, void * aux){
+  struct fd_item * fd_item_a = hash_entry(a, struct fd_item, elem);
+  struct fd_item * fd_item_b = hash_entry(b, struct fd_item, elem);
+  return fd_item_a->id < fd_item_b->id;
+}
 
 

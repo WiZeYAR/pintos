@@ -9,7 +9,7 @@
 
 
 /** A global hash map of file descriptors (and maybe files) for all threads */
-struct hash * FD_HASHMAP;
+//struct hash * FD_HASHMAP;
 
 /* Assignment 6 */
 /* Declaration of hashtable item and functions */
@@ -107,6 +107,7 @@ typedef int tid_t;
 struct thread
   {
     /* Owned by thread.c. */
+    struct hash * fd_hashmap;		/* hashmap of <fd:struct file *> */
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
     char name[MAX_THREADNAME_LENGTH];   /* Name (for debugging purposes). */

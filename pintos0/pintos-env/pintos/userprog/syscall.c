@@ -146,12 +146,14 @@ static void syscall_remove (struct intr_frame *f){
 }
 
 static void syscall_open (struct intr_frame *f){
-  // int *stack = f->esp;
-  // char * filename = *(stack+1);
-  // struct fd_item * i = malloc(sizeof(struct fd_item));
-  // i->id = fd++;
-  //   i->f = filesys_open(filename);
-  //   hash_insert(FD_HASHMAP, &i->elem);
+  /*
+  int *stack = f->esp;
+  char * filename = *(stack+1);
+  struct fd_item * i = malloc(sizeof(struct fd_item));
+  i->id = fd++;
+  i->f = filesys_open(filename);
+  hash_insert(FD_HASHMAP, &i->elem);
+  */
 }
 
 static void syscall_close (struct intr_frame *f){
