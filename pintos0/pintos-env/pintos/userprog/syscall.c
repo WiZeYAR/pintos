@@ -13,7 +13,7 @@
 #include "lib/user/syscall.h"
 
 
-static unsigned fd = 0;
+static unsigned fd = 3;
 static void syscall_handler (struct intr_frame *);
 typedef void (*handler) (struct intr_frame *);
 //Assignment 4
