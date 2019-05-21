@@ -146,14 +146,22 @@ static void syscall_remove (struct intr_frame *f){
 }
 
 static void syscall_open (struct intr_frame *f){
-  /*
   int *stack = f->esp;
   char * filename = *(stack+1);
+  if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
+    f->eax = -1;
+    return;
+  }
   struct fd_item * i = malloc(sizeof(struct fd_item));
   i->id = fd++;
-  i->f = filesys_open(filename);
-  hash_insert(FD_HASHMAP, &i->elem);
-  */
+  struct file * file_opened = filesys_open(filename);
+  if (file_opened) {
+    i->f = file_opened;
+    hash_insert(&(thread_current()->fd_hashmap), &i->elem);
+    f->eax = fd;
+  } else {
+    f->eax = -1;
+  }
 }
 
 static void syscall_close (struct intr_frame *f){

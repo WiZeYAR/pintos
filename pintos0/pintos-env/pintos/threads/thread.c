@@ -139,10 +139,6 @@ thread_init (void)
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
 
-  /* Assingment 6: FD_HASHMAP initialization */
-  // ASSERT(FD_HASHMAP = malloc(sizeof(struct hash)));
-  // ASSERT(hash_init(FD_HASHMAP, fd_item_hash, fd_item_compare, NULL));
-
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -302,6 +298,11 @@ thread_create (const char *name, int priority,
    * when the parent calls process_wait(child_tid). */
   t->parent_waiting = false;
   #endif
+
+  /* ASSIGNMENT 6
+   * Initialize hashmap
+   */
+  hash_init(&(t->fd_hashmap), fd_item_hash, fd_item_compare, NULL);
 
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack' 
@@ -684,13 +685,6 @@ init_thread (struct thread *t, const char *name, int priority)
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
 
-  // initialize the hashmap
-  /*
-  ASSERT(FD_HASHMAP = malloc(sizeof(struct hash)));
-  ASSERT(hash_init(FD_HASHMAP, fd_item_hash, fd_item_compare, NULL));
-  */
-  //t->fd_hashmap = malloc(sizeof(struct hash))
-
 #ifdef USERPROG
   /* For the userprog tests, the thread name must be just the
    * filename that it executes, excluding any arguments passed
@@ -717,13 +711,7 @@ init_thread (struct thread *t, const char *name, int priority)
 
   t->magic = THREAD_MAGIC;
 
-  /* If we want to use alloc_frame we have to have t->magic set
-   * But I'm still not sure if it's the correct thing to do */
-  t->fd_hashmap = alloc_frame(t, sizeof(struct hash));
-
   list_push_back (&all_list, &t->allelem);
-  /* This cannot be here as hash_init calls malloc */
-  //hash_init(t->fd_hashmap, fd_item_hash, fd_item_compare, NULL);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
