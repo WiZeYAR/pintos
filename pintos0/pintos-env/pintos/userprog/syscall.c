@@ -135,6 +135,13 @@ syscall_exec(struct intr_frame *f) {
 static void syscall_create(struct intr_frame *f){
   int *stack = f->esp;
   char * filename = *(stack+1);
+  //printf("Before filename: %s\n", filename);
+  if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
+    //printf("Inside filename: %s\n", filename);
+    f->eax = -1;
+    return;
+  }
+  //printf("After filename: %s\n", filename);
   int size = *(stack+2);
   f->eax = filesys_create(filename, size);
 }
