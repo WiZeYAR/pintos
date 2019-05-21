@@ -83,13 +83,38 @@ syscall_handler (struct intr_frame *f)
   call[syscall_code](f);
 }
 
+/**
+ * Terminates this thread with exit status given
+ * This function is used for the exit call handler, 
+ * as well as for every seg-fault-like situation
+ */
+static void terminate_thread(int exit_status) {
+#ifdef USERPROG
+  thread_current()->exit_status = exit_status;
+#endif
+  thread_exit ();
+}
+
+/**
+ * Given fd, return the file pointer or NULL, if
+ * no file exists with this descriptor or fd does not
+ * belong to this process
+ */
+static struct file * get_file_by_fd(int file_descriptor) {
+  struct fd_item item = {
+    .id = file_descriptor,
+  };
+  struct hash_elem * element = hash_find(&thread_current()->fd_hashmap, &item.elem);
+  if(!element) return NULL;
+  return hash_entry(element, struct fd_item, elem)->f;
+}
+
+
 static void
 syscall_exit (struct intr_frame *f)
 {
   int *stack = f->esp;
-  struct thread* t = thread_current ();
-  t->exit_status = *(stack+1);
-  thread_exit ();
+  terminate_thread(*(stack+1));
 }
 
 static void
@@ -135,13 +160,10 @@ syscall_exec(struct intr_frame *f) {
 static void syscall_create(struct intr_frame *f){
   int *stack = f->esp;
   char * filename = *(stack+1);
-  //printf("Before filename: %s\n", filename);
   if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
-    //printf("Inside filename: %s\n", filename);
-    f->eax = -1;
+    terminate_thread(-1);
     return;
   }
-  //printf("After filename: %s\n", filename);
   int size = *(stack+2);
   f->eax = filesys_create(filename, size);
 }
@@ -156,15 +178,20 @@ static void syscall_open (struct intr_frame *f){
   int *stack = f->esp;
   char * filename = *(stack+1);
   if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
-    f->eax = -1;
+    terminate_thread(-1);
     return;
   }
   struct fd_item * i = malloc(sizeof(struct fd_item));
+  if(!i) {
+    printf("Holy macro! We are out of memory as we have no space for the descriptor!\n");
+    terminate_thread(-1);
+  }
   i->id = fd++;
   struct file * file_opened = filesys_open(filename);
   if (file_opened) {
     i->f = file_opened;
     hash_insert(&(thread_current()->fd_hashmap), &i->elem);
+    //ASSERT(hash_find(&(thread_current()->fd_hashmap), &i->elem));
     f->eax = fd;
   } else {
     f->eax = -1;
@@ -172,20 +199,32 @@ static void syscall_open (struct intr_frame *f){
 }
 
 static void syscall_close (struct intr_frame *f){
-
+  
 }
+
 static void syscall_filesize (struct intr_frame *f){
-
+  int * stack_pointer = f->esp;
+  int file_descriptor = *(stack_pointer + 1);
+  struct file * file = get_file_by_fd(file_descriptor);
+  if(!file) {
+    PANIC("AN INVALID FD WAS PASSED! THE BEHAVIOR IS UNDEFINED");
+    // TODO: CHECK OUT THE PROPER BEHAVIOR IN CASE OF INVALID FD
+  }
+  f->eax = file_length(file);
 }
-static void syscall_read (struct intr_frame *f){
 
+static void syscall_read (struct intr_frame *f) {
+  
 }
+
 static void syscall_seek (struct intr_frame *f){
 
 }
+
 static void syscall_tell (struct intr_frame *f){
 
 }
+
 static void syscall_halt (struct intr_frame *f){
   shutdown_power_off();
 }
