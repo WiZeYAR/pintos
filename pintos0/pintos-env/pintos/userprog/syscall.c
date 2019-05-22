@@ -214,10 +214,34 @@ static void syscall_filesize (struct intr_frame *f){
 }
 
 static void syscall_read (struct intr_frame *f) {
+  int * stack_pointer = f->esp;
   
+  /* ---- VARIABLE INITIALIZATION ---- */
+  const int file_descriptor = *(stack_pointer + 1);
+  char * const buffer = *(stack_pointer + 2);
+  const int buffer_size = *(stack_pointer + 3);
+
+
+  /* ---- GETTING FILE FROM THE DESCRIPTOR ---- */
+  struct file * const file = get_file_by_fd(file_descriptor);
+  if(!file) {
+    terminate_thread(-1);
+    return;
+  }
+
+
+  /* ---- CHECKING THE BUFFER POINTER ON VALIDITY ---- */
+  // TODO: ASSERT THAT THE BUFFER POINTER IS VALID
+
+
+  /* ---- READING THE FILE INTO BUFFER ---- */
+  f->eax = file_read(file, buffer, buffer_size);
+
 }
 
-static void syscall_seek (struct intr_frame *f){
+static void syscall_seek (struct intr_frame *f) {
+
+  
 
 }
 
