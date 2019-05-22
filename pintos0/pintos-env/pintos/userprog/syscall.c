@@ -121,11 +121,26 @@ static void
 syscall_write (struct intr_frame *f)
 {
   int *stack = f->esp;
-  ASSERT (*(stack+1) == 1); // fd 1
+  //ASSERT (*(stack+1) == 1); // fd 1
+  int fd_stack = *(stack+1);
   char * buffer = *(stack+2);
   int    length = *(stack+3);
-  putbuf (buffer, length);
-  f->eax = length;
+  if (fd_stack == 1) {
+    putbuf (buffer, length);
+    f->eax = length;
+  } else {
+    // if not stdout
+    struct file * file_to_write = get_file_by_fd(fd_stack);
+    if (!file_to_write || 
+        !is_user_vaddr(buffer) || 
+        !buffer || 
+        !is_user_vaddr(buffer) ||
+        !pagedir_get_page(thread_current()->pagedir, buffer)) {
+      terminate_thread(-1);
+      return;
+    }
+    f->eax = file_write(file_to_write, buffer, length);
+  }
 }
 
 // WAIT CALL: 
@@ -227,7 +242,6 @@ static void syscall_read (struct intr_frame *f) {
   struct file * const file = get_file_by_fd(file_descriptor);
   if(!file) {
     terminate_thread(-1);
-    f->eax = -1;
     return;
   }
 
