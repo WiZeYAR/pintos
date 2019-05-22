@@ -237,7 +237,26 @@ static void syscall_open (struct intr_frame *f){
 }
 
 static void syscall_close (struct intr_frame *f){
-  
+  sema_down(thread_current()->sema);
+  int * stack = f->esp;
+  int file_descriptor = *(stack+1);
+  struct file * open_file = get_file_by_fd(file_descriptor);
+  if(!open_file){
+    terminate_thread(-1);
+    sema_up(thread_current()->sema);
+    return;
+  }
+
+  file_close(open_file);
+  const struct fd_item item = { .id = file_descriptor };
+  free(
+    hash_entry(
+      hash_delete(&thread_current()->fd_hashmap, &item.elem),
+      struct fd_item,
+      elem
+    )
+  );
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_filesize (struct intr_frame *f){
