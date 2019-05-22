@@ -192,7 +192,7 @@ static void syscall_open (struct intr_frame *f){
     i->f = file_opened;
     hash_insert(&(thread_current()->fd_hashmap), &i->elem);
     //ASSERT(hash_find(&(thread_current()->fd_hashmap), &i->elem));
-    f->eax = fd;
+    f->eax = i->id;
   } else {
     f->eax = -1;
   }
@@ -207,8 +207,9 @@ static void syscall_filesize (struct intr_frame *f){
   int file_descriptor = *(stack_pointer + 1);
   struct file * file = get_file_by_fd(file_descriptor);
   if(!file) {
-    PANIC("AN INVALID FD WAS PASSED! THE BEHAVIOR IS UNDEFINED");
+    //PANIC("AN INVALID FD WAS PASSED! THE BEHAVIOR IS UNDEFINED");
     // TODO: CHECK OUT THE PROPER BEHAVIOR IN CASE OF INVALID FD
+    f->eax = -1;
   }
   f->eax = file_length(file);
 }
@@ -226,12 +227,16 @@ static void syscall_read (struct intr_frame *f) {
   struct file * const file = get_file_by_fd(file_descriptor);
   if(!file) {
     terminate_thread(-1);
+    f->eax = -1;
     return;
   }
 
 
   /* ---- CHECKING THE BUFFER POINTER ON VALIDITY ---- */
-  // TODO: ASSERT THAT THE BUFFER POINTER IS VALID
+  if (!buffer || !is_user_vaddr(buffer)) {
+    terminate_thread(-1);
+    return;
+  }
 
 
   /* ---- READING THE FILE INTO BUFFER ---- */
