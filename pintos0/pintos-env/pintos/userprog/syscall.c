@@ -259,13 +259,26 @@ static void syscall_read (struct intr_frame *f) {
 }
 
 static void syscall_seek (struct intr_frame *f) {
-
-  
-
+  int * stack = f->esp;
+  int file_descriptor = *(stack+1);
+  int pos = *(stack+2);
+  struct file * open_file = get_file_by_fd(file_descriptor);
+  if (!open_file) {
+    terminate_thread(-1);
+    return;
+  }
+  file_seek(open_file, pos);
 }
 
 static void syscall_tell (struct intr_frame *f){
-
+  int * stack = f->esp;
+  int file_descriptor = *(stack+1);
+  struct file * open_file = get_file_by_fd(file_descriptor);
+  if (!open_file) {
+    terminate_thread(-1);
+    return;
+  }
+  f->eax = file_tell(open_file);
 }
 
 static void syscall_halt (struct intr_frame *f){
