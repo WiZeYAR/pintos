@@ -21,10 +21,6 @@
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
-/* TODO:
-   Assignment 4: Implementing args passing 
-   1) addr, which argv, data contained, size 
-*/
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -44,21 +40,22 @@ process_execute (const char *file_name)
 
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  thread_get_by_tid(tid)->parent_tid = thread_current()->tid;
+  thread_get_by_tid(tid)->parent_waits = false;
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
 }
 
-/* TODO Assignment 4 */
 /* A thread function that loads a user process and starts it
    running. */
 static void
 start_process (void *file_name_)
 {
-  //use strtok_r() to tokenise the file 
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
+
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
@@ -72,6 +69,40 @@ start_process (void *file_name_)
   if (!success) 
     thread_exit ();
 
+
+  /* ---- SETTING UP ARGUMENTS ---- */
+  {
+    // VARIABLES
+    char *  lasts  = NULL;
+    char ** argv   = palloc_get_page(0);
+    int     argc   = 0;
+    char *  stack  = if_.esp;
+
+
+    // LOADING ARGS FROM STRING TO AN ARRAY OF ARGS
+    char * arg;
+    if(argv == NULL) thread_exit(); // OUT OF MEMORY -- CANNOT LOAD ARGS
+    for(arg = strtok_r(file_name, " ", &lasts);
+        arg != NULL;
+        arg = strtok_r(NULL, " ", &lasts)) {
+      argv[argc++] = arg;
+    }
+
+    // COPYING ARGS TO THE STACK AND MAKING CLEANUP
+    int argv_addr[argc];
+    int i;
+    for(i = 0; i < argc; ++i) {
+      int arg_len = strlen(argv[i]) + 1;
+      stack -= arg_len;
+      memcpy(stack, argv[i], arg_len);
+      argv_addr[i] = stack;
+    }
+  }
+  /* ---- -------------------- ---- */
+
+
+  
+
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -82,11 +113,6 @@ start_process (void *file_name_)
   NOT_REACHED ();
 }
 
-/* TODO: Assignment 4 
-   Child keeps track of parent thread
-   use thread_block to block the parent 
-   when child_exit --> thread_unblock()
-*/
 /* Waits for thread TID to die and returns its exit status.  If
    it was terminated by the kernel (i.e. killed due to an
    exception), returns -1.  If TID is invalid or if it was not a
@@ -99,7 +125,18 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  return -1;
+
+  struct thread * child = thread_get_by_tid(child_tid);
+  if(!child || child->parent_tid != thread_current()->tid) return -1;
+  //child->parent_waits = true;
+
+
+  // HAD SMALL AMOUNT OF TIME AND WAS NOT ABLE TO LOCATE SEMAPHORRES
+  while(child->parent_waits) thread_sleep(timer_ticks() + 1000);
+
+
+
+  return child->proc_ret_code;
 }
 
 /* Free the current process's resources. */
@@ -107,6 +144,7 @@ void
 process_exit (void)
 {
   struct thread *cur = thread_current ();
+
   uint32_t *pd;
 
   /* Destroy the current process's page directory and switch back
@@ -125,6 +163,10 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
+  
+  // UNBLOCK THE PARENT THREAD
+  // COULD NOT LOCATE SEMAPHORRES
+  thread_unblock(thread_get_by_tid(cur->parent_tid));
 }
 
 /* Sets up the CPU for running user code in the current

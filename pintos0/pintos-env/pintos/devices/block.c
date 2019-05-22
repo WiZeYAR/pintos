@@ -170,10 +170,10 @@ block_print_stats (void)
     {
       struct block *block = block_by_role[i];
       if (block != NULL)
-        { // THIS WAS COMMENTED BY ME
-          // printf ("%s (%s): %llu reads, %llu writes\n",
-          //         block->name, block_type_name (block->type),
-          //         block->read_cnt, block->write_cnt);
+        {
+          printf ("%s (%s): %llu reads, %llu writes\n",
+                  block->name, block_type_name (block->type),
+                  block->read_cnt, block->write_cnt);
         }
     }
 }
@@ -210,7 +210,7 @@ block_register (const char *name, enum block_type type,
 
   return block;
 }
-
+
 /* Returns the block device corresponding to LIST_ELEM, or a null
    pointer if LIST_ELEM is the list end of all_blocks. */
 static struct block *
