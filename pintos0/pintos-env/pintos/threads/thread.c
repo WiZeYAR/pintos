@@ -9,7 +9,7 @@
 #include "threads/intr-stubs.h"
 #include "threads/palloc.h"
 #include "threads/switch.h"
-#include "threads/synch.h"
+//#include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "devices/timer.h"
 #ifdef USERPROG
@@ -26,6 +26,7 @@
 hash_hash_func fd_item_hash;
 //bool fd_item_compare(const struct hash_elem * a, const struct hash_elem * b, void * aux);
 hash_less_func fd_item_compare;
+struct semaphore sema;
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -303,6 +304,7 @@ thread_create (const char *name, int priority,
    * Initialize hashmap
    */
   hash_init(&(t->fd_hashmap), fd_item_hash, fd_item_compare, NULL);
+  t->sema = &sema;
 
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack' 
@@ -710,6 +712,8 @@ init_thread (struct thread *t, const char *name, int priority)
   }
 
   t->magic = THREAD_MAGIC;
+
+  sema_init(&sema, 1);
 
   list_push_back (&all_list, &t->allelem);
 }

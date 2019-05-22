@@ -113,13 +113,17 @@ static struct file * get_file_by_fd(int file_descriptor) {
 static void
 syscall_exit (struct intr_frame *f)
 {
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   terminate_thread(*(stack+1));
+  sema_up(thread_current()->sema);
 }
 
 static void
 syscall_write (struct intr_frame *f)
 {
+  sema_down(thread_current()->sema);
+
   int *stack = f->esp;
   //ASSERT (*(stack+1) == 1); // fd 1
   int fd_stack = *(stack+1);
@@ -128,6 +132,7 @@ syscall_write (struct intr_frame *f)
   if (fd_stack == 1) {
     putbuf (buffer, length);
     f->eax = length;
+    sema_up(thread_current()->sema);
   } else {
     // if not stdout
     struct file * file_to_write = get_file_by_fd(fd_stack);
@@ -137,9 +142,11 @@ syscall_write (struct intr_frame *f)
         !is_user_vaddr(buffer) ||
         !pagedir_get_page(thread_current()->pagedir, buffer)) {
       terminate_thread(-1);
+      sema_up(thread_current()->sema);
       return;
     }
     f->eax = file_write(file_to_write, buffer, length);
+    sema_up(thread_current()->sema);
   }
 }
 
@@ -147,59 +154,74 @@ syscall_write (struct intr_frame *f)
 /* Handling function */
 static void 
 syscall_wait(struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   pid_t pid = *(stack+1);
   f->eax = process_wait(pid);
+  sema_up(thread_current()->sema);
 }
 
 // EXEC CALL:
 /* Handling function */
 static void 
 syscall_exec(struct intr_frame *f) {
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   char * command = *(stack+1);
   /* Check if address is a user virtual address */
   if (!is_user_vaddr(command) || !pagedir_get_page(thread_current()->pagedir, command)){
     f->eax = -1;
+    sema_up(thread_current()->sema);
     return;
   }
   tid_t res = process_execute(command);
   if (!thread_current()->child_load_success){
     f->eax = -1; 
+    sema_up(thread_current()->sema);
     return;
   }
   f->eax = res;
+  sema_up(thread_current()->sema);
 }
 
 // Assignment 6
 static void syscall_create(struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   char * filename = *(stack+1);
   if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
   int size = *(stack+2);
   f->eax = filesys_create(filename, size);
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_remove (struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   char * filename = *(stack+1);
   f->eax = filesys_remove(filename);
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_open (struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int *stack = f->esp;
   char * filename = *(stack+1);
   if (!filename || !pagedir_get_page(thread_current()->pagedir, filename)) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
   struct fd_item * i = malloc(sizeof(struct fd_item));
   if(!i) {
     printf("Holy macro! We are out of memory as we have no space for the descriptor!\n");
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
+    return;
   }
   i->id = fd++;
   struct file * file_opened = filesys_open(filename);
@@ -211,6 +233,7 @@ static void syscall_open (struct intr_frame *f){
   } else {
     f->eax = -1;
   }
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_close (struct intr_frame *f){
@@ -218,6 +241,7 @@ static void syscall_close (struct intr_frame *f){
 }
 
 static void syscall_filesize (struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int * stack_pointer = f->esp;
   int file_descriptor = *(stack_pointer + 1);
   struct file * file = get_file_by_fd(file_descriptor);
@@ -225,11 +249,14 @@ static void syscall_filesize (struct intr_frame *f){
     //PANIC("AN INVALID FD WAS PASSED! THE BEHAVIOR IS UNDEFINED");
     // TODO: CHECK OUT THE PROPER BEHAVIOR IN CASE OF INVALID FD
     f->eax = -1;
+    sema_up(thread_current()->sema);
   }
   f->eax = file_length(file);
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_read (struct intr_frame *f) {
+  sema_down(thread_current()->sema);
   int * stack_pointer = f->esp;
   
   /* ---- VARIABLE INITIALIZATION ---- */
@@ -242,6 +269,7 @@ static void syscall_read (struct intr_frame *f) {
   struct file * const file = get_file_by_fd(file_descriptor);
   if(!file) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
 
@@ -249,36 +277,43 @@ static void syscall_read (struct intr_frame *f) {
   /* ---- CHECKING THE BUFFER POINTER ON VALIDITY ---- */
   if (!buffer || !is_user_vaddr(buffer)) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
 
 
   /* ---- READING THE FILE INTO BUFFER ---- */
   f->eax = file_read(file, buffer, buffer_size);
-
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_seek (struct intr_frame *f) {
+  sema_down(thread_current()->sema);
   int * stack = f->esp;
   int file_descriptor = *(stack+1);
   int pos = *(stack+2);
   struct file * open_file = get_file_by_fd(file_descriptor);
   if (!open_file) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
   file_seek(open_file, pos);
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_tell (struct intr_frame *f){
+  sema_down(thread_current()->sema);
   int * stack = f->esp;
   int file_descriptor = *(stack+1);
   struct file * open_file = get_file_by_fd(file_descriptor);
   if (!open_file) {
     terminate_thread(-1);
+    sema_up(thread_current()->sema);
     return;
   }
   f->eax = file_tell(open_file);
+  sema_up(thread_current()->sema);
 }
 
 static void syscall_halt (struct intr_frame *f){

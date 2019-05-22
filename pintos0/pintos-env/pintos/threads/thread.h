@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "threads/fpr_arith.h"
 #include "lib/kernel/hash.h"
+#include "threads/synch.h"
 
 
 /** A global hash map of file descriptors (and maybe files) for all threads */
@@ -114,6 +115,7 @@ struct thread
     char name[MAX_THREADNAME_LENGTH];   /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     struct list_elem allelem;           /* List element for all threads list. */
+    struct semaphore * sema;
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. Used either for ready_list or sleeping_list. */
